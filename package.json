@@ -1,0 +1,37 @@
+{
+  "name": "ruby-escrow",
+  "version": "0.1.0",
+  "description": "SDK + hosted UI that wraps Payluk's escrow-as-a-service",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:sdk": "pnpm -F @ruby-escrow/sdk build",
+    "build:ui": "pnpm -F ruby-escrow-hosted-ui build",
+    "dev": "pnpm -r --parallel dev",
+    "dev:sdk": "pnpm -F @ruby-escrow/sdk dev",
+    "dev:ui": "pnpm -F ruby-escrow-hosted-ui dev",
+    "lint": "pnpm -r lint",
+    "lint:sdk": "pnpm -F @ruby-escrow/sdk lint",
+    "lint:ui": "pnpm -F ruby-escrow-hosted-ui lint",
+    "format": "pnpm -r format",
+    "typecheck": "pnpm -r typecheck",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "escrow",
+    "payment",
+    "payluk",
+    "sdk",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.2"
+  }
+}
