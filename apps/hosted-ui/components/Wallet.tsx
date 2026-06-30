@@ -1,15 +1,19 @@
 /**
  * Wallet Component
- * 
+ *
  * Displays wallet balance and transaction list.
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { getWallet, getTransactions, type TransactionsResponse } from '@/lib/api';
-import TransactionList from './TransactionList';
-import { type PaylukEscrow } from '@/lib/paylukClient';
+import { useState, useEffect } from "react";
+import {
+  getWallet,
+  getTransactions,
+  type TransactionsResponse,
+} from "@/lib/api";
+import TransactionList from "./TransactionList";
+import { type PaylukEscrow } from "@/lib/paylukClient";
 
 interface WalletProps {
   customerId: string;
@@ -21,19 +25,31 @@ interface WalletProps {
 
 interface WalletData {
   escrowBalance: number;
-  mainBalance: number
+  mainBalance: number;
   currency: string;
   transactions: any[];
 }
 
-export default function Wallet({ customerId, apiKey, onCreateTransaction, onTransactionClick, onBack }: WalletProps) {
+export default function Wallet({
+  customerId,
+  apiKey,
+  onCreateTransaction,
+  onTransactionClick,
+  onBack,
+}: WalletProps) {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<TransactionsResponse["data"]>([]);
+  const [transactions, setTransactions] = useState<
+    TransactionsResponse["data"]
+  >([]);
   const [error, setError] = useState<string | null>(null);
-  const [transactionError, setTransactionsError] = useState<string | null>(null);
+  const [transactionError, setTransactionsError] = useState<string | null>(
+    null,
+  );
   const [refreshing, setRefreshing] = useState(false);
-  const [transactionType, setTransactionType] = useState<'sales' | 'buy'>('sales');
+  const [transactionType, setTransactionType] = useState<"sales" | "buy">(
+    "sales",
+  );
   const [transactionsLoading, setTransactionsLoading] = useState(false);
 
   const fetchWallet = async () => {
@@ -41,7 +57,7 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
       const result = await getWallet(customerId, apiKey);
 
       if (result.error || !result.data) {
-        setError(result.error || 'Failed to load wallet');
+        setError(result.error || "Failed to load wallet");
         return;
       }
 
@@ -50,14 +66,14 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
       setWalletData(result.data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const fetchTransactions = async (type: 'sales' | 'buy' = transactionType) => {
+  const fetchTransactions = async (type: "sales" | "buy" = transactionType) => {
     setTransactionsLoading(true);
     try {
       console.log(`Fetching ${type} transactions...`);
@@ -65,14 +81,17 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
       console.log(result);
 
       if (result.error || !result.data) {
-        setTransactionsError(result.error || 'Failed to load transactions');
+        setTransactionsError(result.error || "Failed to load transactions");
         return;
       }
 
       setTransactions(result.data.data);
       setTransactionsError(null);
     } catch (err) {
-      setTransactionsError(err instanceof Error ? err.message : 'An error occurred');
+      setTransactionsError(
+        err instanceof Error ? err.message : "An error occurred",
+      );
+      setTransactions([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -82,7 +101,7 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
 
   useEffect(() => {
     fetchWallet();
-    fetchTransactions('sales');
+    fetchTransactions("sales");
   }, [customerId, apiKey]);
 
   // Re-fetch whenever the toggle changes
@@ -150,7 +169,9 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-blue-100">Available Balance</p>
+            <p className="text-sm font-medium text-blue-100">
+              Available Balance
+            </p>
             <p className="mt-2 text-3xl font-bold">
               {walletData?.mainBalance.toFixed(2)} {walletData?.currency}
             </p>
@@ -168,7 +189,7 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
             title="Refresh"
           >
             <svg
-              className={`h-6 w-6 ${refreshing ? 'animate-spin' : ''}`}
+              className={`h-6 w-6 ${refreshing ? "animate-spin" : ""}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -216,22 +237,22 @@ export default function Wallet({ customerId, apiKey, onCreateTransaction, onTran
           <div className="flex items-center rounded-lg overflow-hidden border border-gray-200 text-sm font-medium">
             <button
               id="toggle-sales"
-              onClick={() => setTransactionType('sales')}
+              onClick={() => setTransactionType("sales")}
               className={`px-4 py-1.5 transition-colors ${
-                transactionType === 'sales'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                transactionType === "sales"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               Sales
             </button>
             <button
               id="toggle-purchases"
-              onClick={() => setTransactionType('buy')}
+              onClick={() => setTransactionType("buy")}
               className={`px-4 py-1.5 transition-colors ${
-                transactionType === 'buy'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                transactionType === "buy"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               Purchases

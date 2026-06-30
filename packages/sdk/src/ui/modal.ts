@@ -9,7 +9,7 @@ import {
   EscrowError,
   PostMessageEvent,
   EscrowSessionResult,
-} from '../types';
+} from "../types";
 
 export class EscrowModal {
   private iframe: HTMLIFrameElement | null = null;
@@ -33,12 +33,12 @@ export class EscrowModal {
   private resolveContainer(): HTMLElement | null {
     const { container } = this.options;
     if (!container) return null;
-    if (typeof container === 'string') {
+    if (typeof container === "string") {
       const el = document.querySelector<HTMLElement>(container);
       if (!el) {
         throw new EscrowError(
           `Container element not found: "${container}"`,
-          'INVALID_CONTAINER'
+          "INVALID_CONTAINER",
         );
       }
       return el;
@@ -50,11 +50,11 @@ export class EscrowModal {
    * Build the iframe element.
    */
   private createIframe(): HTMLIFrameElement {
-    const iframe = document.createElement('iframe');
+    const iframe = document.createElement("iframe");
     const sessionUrl = `${this.options.baseUrl}/session?token=${encodeURIComponent(this.options.token)}`;
     iframe.src = sessionUrl;
-    iframe.setAttribute('allowfullscreen', 'true');
-    iframe.setAttribute('allow', 'payment');
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.setAttribute("allow", "payment");
     return iframe;
   }
 
@@ -67,16 +67,16 @@ export class EscrowModal {
    */
   open(): void {
     if (this.iframe) {
-      throw new EscrowError('Widget is already open', 'MODAL_ALREADY_OPEN');
+      throw new EscrowError("Widget is already open", "MODAL_ALREADY_OPEN");
     }
 
-    const mode = this.options.displayMode ?? 'modal';
+    const mode = this.options.displayMode ?? "modal";
 
     this.iframe = this.createIframe();
 
-    if (mode === 'inline') {
+    if (mode === "inline") {
       this.openInline();
-    } else if (mode === 'fullscreen') {
+    } else if (mode === "fullscreen") {
       this.openFullscreen();
     } else {
       this.openModal();
@@ -87,7 +87,7 @@ export class EscrowModal {
 
   /** Render as a centred overlay modal. */
   private openModal(): void {
-    this.overlay = document.createElement('div');
+    this.overlay = document.createElement("div");
     this.overlay.style.cssText = `
       position: fixed;
       top: 0;
@@ -114,10 +114,10 @@ export class EscrowModal {
 
     this.overlay.appendChild(this.iframe!);
     document.body.appendChild(this.overlay);
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     // Close on backdrop click
-    this.overlay.addEventListener('click', (e) => {
+    this.overlay.addEventListener("click", (e) => {
       if (e.target === this.overlay) {
         this.handleCancel();
       }
@@ -126,7 +126,7 @@ export class EscrowModal {
 
   /** Render as a full-viewport overlay (no backdrop colour). */
   private openFullscreen(): void {
-    this.overlay = document.createElement('div');
+    this.overlay = document.createElement("div");
     this.overlay.style.cssText = `
       position: fixed;
       top: 0;
@@ -145,7 +145,7 @@ export class EscrowModal {
 
     this.overlay.appendChild(this.iframe!);
     document.body.appendChild(this.overlay);
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
   }
 
   /** Inject the iframe directly into the caller-provided container. */
@@ -156,8 +156,8 @@ export class EscrowModal {
       // this branch only fires if container wasn't provided (shouldn't happen
       // after init.ts validation, but guard anyway).
       throw new EscrowError(
-        'container is required for inline display mode',
-        'INVALID_OPTIONS'
+        "container is required for inline display mode",
+        "INVALID_OPTIONS",
       );
     }
     this.inlineContainer = container;
@@ -181,7 +181,7 @@ export class EscrowModal {
    */
   close(): void {
     if (this.messageHandler) {
-      window.removeEventListener('message', this.messageHandler);
+      window.removeEventListener("message", this.messageHandler);
       this.messageHandler = null;
     }
 
@@ -189,11 +189,15 @@ export class EscrowModal {
       this.overlay.parentNode.removeChild(this.overlay);
     }
 
-    if (this.inlineContainer && this.iframe && this.iframe.parentNode === this.inlineContainer) {
+    if (
+      this.inlineContainer &&
+      this.iframe &&
+      this.iframe.parentNode === this.inlineContainer
+    ) {
       this.inlineContainer.removeChild(this.iframe);
     }
 
-    document.body.style.overflow = '';
+    document.body.style.overflow = "";
 
     this.iframe = null;
     this.overlay = null;
@@ -214,46 +218,52 @@ export class EscrowModal {
       // Parse message
       let message: PostMessageEvent;
       try {
-        message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        message =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch (error) {
-        console.error('Failed to parse postMessage data:', error);
+        console.error("Failed to parse postMessage data:", error);
         return;
       }
 
       // Handle message based on type
       switch (message.type) {
-        case 'TRANSACTION_CREATED':
+        case "TRANSACTION_CREATED":
           // Transaction created, keep modal open
           break;
 
-        case 'STATUS_UPDATED':
+        case "STATUS_UPDATED":
           // Status updated, keep modal open
           break;
 
-        case 'SESSION_COMPLETE':
+        case "SESSION_COMPLETE":
           this.handleSuccess(message.payload);
           break;
 
-        case 'SESSION_CANCELLED':
+        case "SESSION_CANCELLED":
           this.handleCancel();
           break;
 
-        case 'SESSION_ERROR':
+        case "SESSION_ERROR":
           this.handleError(message.payload);
           break;
 
+        case "CLOSE":
+          this.handleCancel();
+          break;
+
         default:
-          console.warn('Unknown message type:', message.type);
+          console.warn("Unknown message type:", message.type);
       }
     };
 
-    window.addEventListener('message', this.messageHandler);
+    window.addEventListener("message", this.messageHandler);
   }
 
   /**
    * Handle successful session completion
    */
   private handleSuccess(result: EscrowSessionResult): void {
+    this.removeFromActiveModals();
     this.close();
     if (this.options.onSuccess) {
       this.options.onSuccess(result);
@@ -264,6 +274,7 @@ export class EscrowModal {
    * Handle session cancellation
    */
   private handleCancel(): void {
+    this.removeFromActiveModals();
     this.close();
     if (this.options.onCancel) {
       this.options.onCancel();
@@ -274,14 +285,25 @@ export class EscrowModal {
    * Handle session error
    */
   private handleError(errorData: any): void {
+    this.removeFromActiveModals();
     this.close();
     const error = new EscrowError(
-      errorData.message || 'An error occurred during the escrow session',
-      errorData.code || 'SESSION_ERROR',
-      errorData.details
+      errorData.message || "An error occurred during the escrow session",
+      errorData.code || "SESSION_ERROR",
+      errorData.details,
     );
     if (this.options.onError) {
       this.options.onError(error);
+    }
+  }
+
+  /**
+   * Remove this modal from the active modals tracking array.
+   */
+  private removeFromActiveModals(): void {
+    const idx = activeModals.indexOf(this);
+    if (idx !== -1) {
+      activeModals.splice(idx, 1);
     }
   }
 }
@@ -289,10 +311,34 @@ export class EscrowModal {
 /**
  * Create and open a modal
  */
+// Maintain a file-level array to track currently active modals
+const activeModals: EscrowModal[] = [];
+
 export function openModal(options: ModalOptions): EscrowModal {
+  const limit = options.widgetLimit ?? 2;
+
+  if (activeModals.length >= limit) {
+    throw new Error(
+      `Modal limit reached. You can only open ${limit} instance(s) simultaneously.`,
+    );
+  }
+
   const modal = new EscrowModal(options);
   modal.open();
+
+  activeModals.push(modal);
+
   return modal;
 }
 
-// Made with Bob
+/**
+ * Close all active modals. Called by rubyEscrow.close().
+ */
+export function closeAllModals(): void {
+  // Iterate a copy since close handlers mutate the array
+  const toClose = [...activeModals];
+  for (const modal of toClose) {
+    modal.close();
+  }
+  activeModals.length = 0;
+}

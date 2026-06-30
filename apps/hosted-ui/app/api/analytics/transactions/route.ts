@@ -8,7 +8,7 @@ import {
   getDisputeStats,
   getRevenueByCurrency,
   getApiPerformance,
-  getDashboardStats,
+  // getDashboardStats,
 } from '@/lib/db/queries/analytics';
 
 /**
@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
     const to = searchParams.get('to');
     const days = parseInt(searchParams.get('days') || '30', 10);
     const limit = parseInt(searchParams.get('limit') || '10', 10);
-    const currency = searchParams.get('currency') || 'NGN';
+    // const currency = searchParams.get('currency') || 'NGN';
 
-    const startDate = from ? new Date(from) : undefined;
-    const endDate = to ? new Date(to) : undefined;
+    // const startDate = from ? new Date(from) : undefined;
+    // const endDate = to ? new Date(to) : undefined;
 
     // Fetch all analytics in parallel for performance
     const [

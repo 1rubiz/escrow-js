@@ -9,7 +9,7 @@
 export interface RubyEscrowConfig {
   apiKey: string;
   baseUrl: string;
-  environment?: 'production' | 'sandbox';
+  environment?: "production" | "sandbox";
 }
 
 // ============================================================================
@@ -46,7 +46,7 @@ export interface ParticipantInfo {
   phone?: string;
 }
 
-export type DisplayMode = 'modal' | 'fullscreen' | 'inline';
+export type DisplayMode = "modal" | "fullscreen" | "inline";
 
 export interface InitEscrowOptions {
   /** The caller's own Payluk customer ID. Always required. */
@@ -100,6 +100,11 @@ export interface InitEscrowOptions {
    * Required when `displayMode === 'inline'`; ignored otherwise.
    */
   container?: string | HTMLElement;
+  /**
+   * Target number of widget allowed to be displayed at once.
+   * Defaults to `1`.
+   */
+  widgetLimit?: number;
 }
 
 export interface EscrowSessionResult {
@@ -114,13 +119,13 @@ export interface EscrowSessionResult {
   createdAt: string;
 }
 
-export type EscrowStatus = 
-  | 'pending'
-  | 'funded'
-  | 'released'
-  | 'refunded'
-  | 'disputed'
-  | 'cancelled';
+export type EscrowStatus =
+  | "pending"
+  | "funded"
+  | "released"
+  | "refunded"
+  | "disputed"
+  | "cancelled";
 
 // ============================================================================
 // Session Token Types
@@ -165,9 +170,9 @@ export class EscrowError extends Error {
   code: string;
   details?: any;
 
-  constructor(message: string, code: string = 'UNKNOWN_ERROR', details?: any) {
+  constructor(message: string, code: string = "UNKNOWN_ERROR", details?: any) {
     super(message);
-    this.name = 'EscrowError';
+    this.name = "EscrowError";
     this.code = code;
     this.details = details;
     Object.setPrototypeOf(this, EscrowError.prototype);
@@ -185,11 +190,12 @@ export interface ErrorResponse {
 // ============================================================================
 
 export type PostMessageEventType =
-  | 'TRANSACTION_CREATED'
-  | 'STATUS_UPDATED'
-  | 'SESSION_COMPLETE'
-  | 'SESSION_CANCELLED'
-  | 'SESSION_ERROR';
+  | "TRANSACTION_CREATED"
+  | "STATUS_UPDATED"
+  | "SESSION_COMPLETE"
+  | "SESSION_CANCELLED"
+  | "SESSION_ERROR"
+  | "CLOSE";
 
 export interface PostMessageEvent {
   type: PostMessageEventType;
@@ -197,7 +203,7 @@ export interface PostMessageEvent {
 }
 
 export interface TransactionCreatedEvent extends PostMessageEvent {
-  type: 'TRANSACTION_CREATED';
+  type: "TRANSACTION_CREATED";
   payload: {
     transactionId: string;
     status: EscrowStatus;
@@ -205,7 +211,7 @@ export interface TransactionCreatedEvent extends PostMessageEvent {
 }
 
 export interface StatusUpdatedEvent extends PostMessageEvent {
-  type: 'STATUS_UPDATED';
+  type: "STATUS_UPDATED";
   payload: {
     transactionId: string;
     status: EscrowStatus;
@@ -214,19 +220,19 @@ export interface StatusUpdatedEvent extends PostMessageEvent {
 }
 
 export interface SessionCompleteEvent extends PostMessageEvent {
-  type: 'SESSION_COMPLETE';
+  type: "SESSION_COMPLETE";
   payload: EscrowSessionResult;
 }
 
 export interface SessionCancelledEvent extends PostMessageEvent {
-  type: 'SESSION_CANCELLED';
+  type: "SESSION_CANCELLED";
   payload: {
     reason?: string;
   };
 }
 
 export interface SessionErrorEvent extends PostMessageEvent {
-  type: 'SESSION_ERROR';
+  type: "SESSION_ERROR";
   payload: ErrorResponse;
 }
 
@@ -250,6 +256,11 @@ export interface ModalOptions {
   onSuccess?: (result: EscrowSessionResult) => void;
   onCancel?: () => void;
   onError?: (error: EscrowError) => void;
+  /**
+   * Target number of widget allowed to be displayed at once.
+   * Defaults to `1`.
+   */
+  widgetLimit?: number;
 }
 
 // ============================================================================
@@ -260,8 +271,8 @@ export interface RubyEscrowSDK {
   configure(config: RubyEscrowConfig): void;
   create(customerData: CreateCustomerData): Promise<string>;
   init(options: InitEscrowOptions): Promise<void>;
+  close(): void;
   getConfig(): RubyEscrowConfig | null;
 }
-
 
 // Made with Bob

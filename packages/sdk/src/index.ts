@@ -4,6 +4,7 @@
  */
 
 import { configManager } from './config';
+import { close } from './methods/close';
 import { create } from './methods/create';
 import { init } from './methods/init';
 import {
@@ -40,6 +41,14 @@ const rubyEscrow: RubyEscrowSDK = {
    */
   async init(options: InitEscrowOptions): Promise<void> {
     return init(options);
+  },
+
+  /**
+   * Close all open escrow widgets
+   * Works across all display modes (modal, fullscreen, inline)
+   */
+  close(): void {
+    close();
   },
 
   /**

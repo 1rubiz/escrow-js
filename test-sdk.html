@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ruby Escrow JS - Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 24px;
+        line-height: 1.4;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      button {
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+
+      #status {
+        margin: 12px 0 20px;
+        font-size: 14px;
+      }
+
+      #inlineEscrowContainer {
+        display: none;
+        width: 100%;
+        height: 80vh;
+        min-height: 500px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .hint {
+        color: #4b5563;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Ruby Escrow JS SDK Test</h1>
+    <p class="hint">
+      Update <code>CUSTOMER_ID</code>, <code>PARTICIPANT_ID</code>, and API key
+      values below before testing.
+    </p>
+
+    <h2>SDK Init Flows</h2>
+    <div class="button-row">
+      <button id="openWalletBtn">Open Wallet Only</button>
+      <button id="openTransactionBtn">Open Transaction</button>
+    </div>
+
+    <h2>Escrow Display Modes</h2>
+    <div class="button-row">
+      <button id="openEscrowModalBtn">Escrow Popup Modal</button>
+      <button id="openEscrowFullscreenBtn">Escrow Fullscreen</button>
+      <button id="openEscrowInlineBtn">Escrow Inline</button>
+    </div>
+
+    <p id="status">SDK ready.</p>
+    <div id="inlineEscrowContainer"></div>
+
+    <script src="./dist/index.global.js?v=3"></script>
+    <script>
+      const CUSTOMER_ID = "69f9477ad0822094e4466720";
+      const PARTICIPANT_ID = "69f9f3b66e1aa9c1a7136499";
+
+      const statusEl = document.getElementById("status");
+      const inlineContainer = document.getElementById("inlineEscrowContainer");
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? "#b91c1c" : "#111827";
+      }
+
+      function hideInlineContainer() {
+        inlineContainer.style.display = "none";
+        inlineContainer.innerHTML = "";
+      }
+
+      function showInlineContainer() {
+        inlineContainer.style.display = "block";
+      }
+
+      function callbackSet(flowName) {
+        return {
+          onSuccess: (result) => {
+            console.log(`[${flowName}] completed`, result);
+            setStatus(`[${flowName}] completed: ${result.transactionId}`);
+          },
+          onCancel: () => {
+            console.log(`[${flowName}] cancelled`);
+            setStatus(`[${flowName}] cancelled`);
+          },
+          onError: (error) => {
+            console.error(`[${flowName}] error`, error);
+            setStatus(`[${flowName}] error: ${error.message}`, true);
+          },
+        };
+      }
+
+      function walletOptions(displayMode = "modal") {
+        return {
+          customerId: CUSTOMER_ID,
+          displayMode,
+          ...(displayMode === "inline"
+            ? { container: "#inlineEscrowContainer" }
+            : {}),
+          ...callbackSet(`Wallet - ${displayMode}`),
+        };
+      }
+
+      function transactionOptions(displayMode = "modal") {
+        return {
+          customerId: CUSTOMER_ID,
+          participantId: PARTICIPANT_ID,
+          isSeller: true,
+          amount: 10000,
+          currency: "NGN",
+          name: "SDK Test Purchase",
+          description: "Escrow test transaction from test-sdk.html",
+          conditions: ["Delivery confirmed", "Quality approved"],
+          displayMode,
+          ...(displayMode === "inline"
+            ? { container: "#inlineEscrowContainer" }
+            : {}),
+          ...callbackSet(`Transaction - ${displayMode}`),
+        };
+      }
+
+      async function openSession(label, options) {
+        setStatus(`Opening ${label}...`);
+        try {
+          await RubyEscrow.init(options);
+        } catch (error) {
+          console.error(`Failed to open ${label}`, error);
+          setStatus(`Failed to open ${label}: ${error.message}`, true);
+        }
+      }
+
+      // Configure the SDK with API credentials
+      console.log("Configuring Ruby Escrow SDK...");
+      RubyEscrow.configure({
+        apiKey: "your_api_key_here",
+        baseUrl: "http://localhost:3000",
+        environment: "sandbox",
+      });
+      // Wallet-only flow
+      document
+        .getElementById("openWalletBtn")
+        .addEventListener("click", async () => {
+          hideInlineContainer();
+          await openSession("wallet", walletOptions("modal"));
+        });
+
+      // Transaction flow (default modal)
+      document
+        .getElementById("openTransactionBtn")
+        .addEventListener("click", async () => {
+          hideInlineContainer();
+          await openSession("transaction", transactionOptions("modal"));
+        });
+
+      // Escrow view modes
+      document
+        .getElementById("openEscrowModalBtn")
+        .addEventListener("click", async () => {
+          hideInlineContainer();
+          await openSession(
+            "escrow (popup modal)",
+            transactionOptions("modal"),
+          );
+        });
+
+      document
+        .getElementById("openEscrowFullscreenBtn")
+        .addEventListener("click", async () => {
+          hideInlineContainer();
+          await openSession(
+            "escrow (fullscreen)",
+            transactionOptions("fullscreen"),
+          );
+        });
+
+      document
+        .getElementById("openEscrowInlineBtn")
+        .addEventListener("click", async () => {
+          hideInlineContainer();
+          showInlineContainer();
+          await openSession("escrow (inline)", transactionOptions("inline"));
+        });
+
+      console.log(
+        "SDK ready! Use the buttons to test wallet, transaction, and display modes.",
+      );
+    </script>
+  </body>
+</html>

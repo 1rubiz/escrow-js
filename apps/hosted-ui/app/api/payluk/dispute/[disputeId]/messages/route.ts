@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { disputeId } = params;
+    console.log('Dispute ID:', request.headers);
 
     if (!disputeId) {
       return NextResponse.json(

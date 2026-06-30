@@ -1,14 +1,14 @@
 /**
  * useSession Hook
- * 
+ *
  * Manages session state and validation for the hosted UI.
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { validateSessionToken } from '@/lib/api';
-import { notifyError } from '@/lib/postMessage';
+import { useState, useEffect } from "react";
+import { validateSessionToken } from "@/lib/api";
+import { notifyError } from "@/lib/postMessage";
 
 interface SessionData {
   customerId: string;
@@ -41,10 +41,13 @@ export function useSession(tokenFromUrl?: string): UseSessionResult {
   useEffect(() => {
     async function validateSession() {
       // Get token from URL parameter
-      const urlToken = tokenFromUrl || new URLSearchParams(window.location.search).get('token');
-      
+      const urlToken =
+        tokenFromUrl ||
+        new URLSearchParams(window.location.search).get("token");
+
       if (!urlToken) {
-        const errorMsg = 'No session token provided';
+        const errorMsg = "No session token provided";
+        console.log("No session token provided");
         setError(errorMsg);
         setLoading(false);
         notifyError(errorMsg);
@@ -57,7 +60,8 @@ export function useSession(tokenFromUrl?: string): UseSessionResult {
       const result = await validateSessionToken(urlToken);
 
       if (result.error || !result.data) {
-        const errorMsg = result.error || 'Failed to validate session';
+        const errorMsg = result.error || "Failed to validate session";
+        console.log("result error", result);
         setError(errorMsg);
         setLoading(false);
         notifyError(errorMsg);
